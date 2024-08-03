@@ -58,5 +58,52 @@ Na casa propria o Boolean significa que é algo com duas alternativas como SIM o
 
 Em CONSTRAINT (esse nome é o comando do postgree) significaria dizer que o "pessoa_pkey" que significa que a chave primária dessa tabela (pkey) é único, ou seja, aquele ID progressivo é único.
 
+![image](https://github.com/user-attachments/assets/2a406d3a-327e-4be9-ad69-72462d08cdd7)
 
+Caso eu esteja preenchendo um SCRIPT de SQL no Postgree eu não preciso ficar fazendo trecho a trecho. Posso selecionar o que quero executar e ele executará só o que está marcado conforme imagem acima. A professora sugeriu fazer etapa por etapa, o que não sei se é interessante.
+
+Em um cliente que tenha um sistema ERP comum, ou até mesmo sistemas financeiros ou de departamento pessoal simples, já possuem banco de dados. Isso significa que através de uma ATS eu consigo migrar esses dados para um banco de dados novo que eu esteja fazendo ou organizando.
+
+## Exemplo de SCRIPT SQL para criação de tabela e inserção de dados
+
+Lembrando que criar tabela pode ser feito através da interface do postgree conforme imagens abaixo
+
+![image](https://github.com/user-attachments/assets/a86e644e-9e92-47e6-b527-1fa1c2f9de8a)
+![image](https://github.com/user-attachments/assets/9adc371a-c982-4363-9e33-d5fcabd5dd90)
+
+Esse abaixo seria o Script do mesmo procedimento, porém via SQL, em vez do postgree. É importante salientar que para criar tabela pode ser via postgree e SQL, mas para INSERT não, essa é exclusivamente via SQL.
+
+```sql
+CREATE TABLE IF NOT EXISTS rh.pessoa
+(id serial,
+nome character varying,
+cpf character varying,
+email character varying,
+nascimento date,
+renda numeric(18,2),
+casa_propria boolean,
+CONSTRAINT pessoa_pkey PRIMARY KEY (id));
+
+INSERT INTO rh.pessoa (nome, cpf, email, nascimento, renda, casa_propria)
+VALUES ('Pedro', '01234567890', 'pedro@digital.com.br', '1990-01-01', '2450.75', 'true')
+VALUES ('Tauany', '01234585890', 'tauany@digital.com.br', '1991-01-01', '2250.75', 'true');
+```
+
+Quem coloca a string como character varying precisa preencher o valor entre a aspa única como ao lado 'Exemplo'
+
+Quando for identificado o texto como INTERGER é preciso apontar um ID como 1,2,3,4... Quando é SERIAL isso é automático. Fica a dica...
+
+PARA VISUALIZAR O RESULTADO DO SCRIPT SQL COMO TABELA:
+![image](https://github.com/user-attachments/assets/8d261e03-2a14-4c8a-83d8-9395f11569dd)
+
+APARECERÁ ASSIM:
+![image](https://github.com/user-attachments/assets/d493a432-4ad3-4c87-b970-68f368096738)
+
+```
+INSERT INTO rh.estado (id, sigla, nome)
+VALUES (5, 'BA', 'BAHIA'),
+(6, 'CE', 'CEARA'),
+(7, 'DF', 'DISTRITO FEDERAL'),
+(8, 'ES', 'ESPIRITO SANTO')
+```
 
