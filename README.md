@@ -22,3 +22,21 @@ Outro questionamento importante é o processamento de dados. Tudo gasta memória
 *INT, FLOAT, NUMERIC e SMALLINT* são os mais comuns nos valores númericos
 
 Valores de data: DATE, TIME, TIMESTAMP
+
+## DDL - Linguagem e Definifição de Dados (mais haver com a estrutura)
+CREATE table - criar uma tabela
+
+DROP table - apaga/excluir uma tabela
+
+ALTER table - alterar a estrutura de uma tabela
+
+TRUNCATE table - excluir todas as linhas de uma tabela
+
+## DML - Linguagem de Manipulação de Dados (mais haver com os dados dentro da estrutura, ou valores)
+SELECT - selecionar uma tupla
+
+INSERT - incluir um registro na tabela
+
+UPTADE - alterar os valores dos dados de uma tabela
+
+DELETE - excluir um dado da tabela
