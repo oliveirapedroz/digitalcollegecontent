@@ -40,3 +40,23 @@ INSERT - incluir um registro na tabela
 UPTADE - alterar os valores dos dados de uma tabela
 
 DELETE - excluir um dado da tabela
+
+## Criando o primeiro Banco de Dados no PostgreeSQL
+
+Observe que clicamos em QUERY TOOL na Public e no lado direito digita o comando. 
+![image](https://github.com/user-attachments/assets/17f0c0ca-1038-4bff-a6ae-3e133251d303)
+
+Estamos usando o CHARACTER VARYING para as maioria justamente porque são textos que não são curtos geralmente. Importante lembrar: se não faremos operações com um número, ele é TEXTO. Por isso, um CPF é texto e não número.
+
+![image](https://github.com/user-attachments/assets/79106730-da64-4ad7-8a0f-d9156a4ce4d7)
+
+ID serial é porque é progressivo. Conforme for cadastrando, ele vai criando 1,2,3,4,5,6...
+
+No numeric é limitado a 18 dígitos e o 2 quer dizer duas casas decimais
+
+Na casa propria o Boolean significa que é algo com duas alternativas como SIM ou NÃO
+
+Em CONSTRAINT (esse nome é o comando do postgree) significaria dizer que o "pessoa_pkey" que significa que a chave primária dessa tabela (pkey) é único, ou seja, aquele ID progressivo é único.
+
+
+
