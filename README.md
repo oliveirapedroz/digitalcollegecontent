@@ -1,7 +1,7 @@
 # Histórico de aulas e do meu desenvolvimento no curso de Data Analytics da Digital College
-## 🫣 AULA 1 - 27/07/2024
+# 🫣 AULA 1 - 27/07/2024
 Testando a ferramenta na minha primeira aula do curso de Data Analytics. Tendo em vista que não conheço muita coisa da área de dados, estou com dificuldades em entender alguns termos - o que é normal. No entanto, a professora vem da minha área de atuação (Setor de Gestão de Pessoas), então isso além de me tranquilizar, me deixou animado para aprender mais sobre como convergir essas duas aulas.
-## 🤔 AULA 2 - 03/08/2024
+# 🤔 AULA 2 - 03/08/2024
 Banco de dados é uma coleção organizada de dados que pode ser facilmente acessada, gerenciada e atualizada. Ele é utilizado para armazenar informações de maneira estruturada, assim como organizamos uma planilha, com colunas e linhas. A área de dados usa nomeclaturas diferentes como, por exemplo, tupla (que significa linha).
 ## Banco de dados relacionais:
 São informações que se relacionam, como o nome propõe. Por exemplo: uma turma de alunos que relaciona as turmas aos professores. Essas relações se dão a partir de tabelas que são idênticas a planilhas do Excel, mas estruturadas de uma forma organizada.
@@ -106,4 +106,43 @@ VALUES (5, 'BA', 'BAHIA'),
 (7, 'DF', 'DISTRITO FEDERAL'),
 (8, 'ES', 'ESPIRITO SANTO')
 ```
+
+# 😊 AULA 03 - 10/08/2024
+
+## Modelagem de dados: é o processo que visualizamos, obtemos insights e fazemos a concepção dos dados antes da criação efetiva do banco de dados.
+
+É preciso entender como o negócio funciona primeiro para só então estruturar o banco de dados. O modelo conceitual foca no entendimento dos REQUISITOS do sistema e do negócio. Isso se faz através de uma abstração dessas informações com a equipe de negócios.
+
+"Linguagem alto nível": tem haver com a linguagem humana, interação pessoal
+
+"Linguagem baixo nível": tem haver com a linguagem da máquina, os códigos
+
+## Cardinalidade
+
+1:1 Um pra um. Exemplo: um setor/departamento que é liderado por um coordenador
+
+1:N Um pra muitos. Exemplo: um setor/departamento que contém muitos colaboradores
+
+N:N Muito para muito. Exemplo: muitos livros que podem ser comprados por muitos clientes
+
+Definindo as tabelas necessárias, chamaríamos elas de ENTIDADES. O software para montar a modelagem sugerido pela professora foi o BRMW conforme print abaixo.
+
+## MODELAGEM CONCEITUAL (boa para apresentar ao cliente)
+
+![image](https://github.com/user-attachments/assets/56bc5bb8-9eaf-417e-8d73-eeed070ba521)
+
+## MODELAGEM LÓGICA
+
+![image](https://github.com/user-attachments/assets/702cf342-1d51-4529-9d1b-634a1f8f8f38)
+
+Observações gerais no modelo que fiz de modelagem lógica acima:
+
+01. id é sempre PK e auto increment (serial)
+
+02. texto é vachar e not null
+
+03. a FK é uma característica de uma tabela principal como genero é uma caracteristica de pessoa
+
+Professora sugeriu Midori Toyota para curso de SQL na Udemy
+
 
