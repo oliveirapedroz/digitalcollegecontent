@@ -143,6 +143,56 @@ Observações gerais no modelo que fiz de modelagem lógica acima:
 
 03. a FK é uma característica de uma tabela principal como genero é uma caracteristica de pessoa
 
+CLICANDO EM GERAR SQL ELE TE DAR O SCRIPT:
+
+![image](https://github.com/user-attachments/assets/efcfe317-997c-431c-98ab-92732244800b)
+
+Obs: ele não é perfeito (o script), precisa conferir e fazer ajustes, principalmente se for usar o Postgrees já que esse script não é adaptado a ele. Por exemplo, não existe AUTO_INCREMENT no Postgree trabalhando com SQL, lá o nome é SERIAL. E assim por diante... O ChatGPT pode corrigir e é importante que você pergunte a IA como se deu as correções. 
+
+Exemplo. O BRMW gerou isto de SCRIPT SQL
+
+```CREATE TABLE pessoa 
+( 
+ id INT PRIMARY KEY AUTO_INCREMENT,  
+ nome VARCHAR(n) NOT NULL,  
+ cpf VARCHAR(n) NOT NULL,  
+ rg VARCHAR(n) NOT NULL,  
+ ctps VARCHAR(n) NOT NULL,  
+ id_genero INT,  
+ UNIQUE (cpf,rg,ctps)
+); 
+
+CREATE TABLE genero 
+( 
+ id INT PRIMARY KEY AUTO_INCREMENT,  
+ descricao VARCHAR(n) NOT NULL,  
+); 
+
+ALTER TABLE pessoa ADD FOREIGN KEY(id_genero) REFERENCES genero (id_genero)
+```
+
+Porém, o correto, para o POSTGRESQL seria:
+
+```
+CREATE TABLE Pessoa (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR NOT NULL,
+    cpf VARCHAR NOT NULL UNIQUE,
+    id_genero INT
+);
+
+CREATE TABLE Genero 
+( 
+ id SERIAL PRIMARY KEY,  
+ descricao VARCHAR NOT NULL  
+); 
+
+ALTER TABLE Pessoa
+ADD CONSTRAINT fk_pessoa_genero 
+FOREIGN KEY (id_genero) 
+REFERENCES Genero(id);
+```
+
 Professora sugeriu Midori Toyota para curso de SQL na Udemy
 
 
