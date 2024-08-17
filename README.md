@@ -313,5 +313,6 @@ ALTER TABLE public.bairro ADD CONSTRAINT fk_bairro_cidade FOREIGN KEY ( id_cidad
 ALTER TABLE public.cidade ADD CONSTRAINT fk_cidade_estado FOREIGN KEY ( id_estado ) REFERENCES public.estado( id ) ON DELETE NO ACTION ON UPDATE NO ACTION;
 ```
 Gerando isso aqui:
+
 ![image](https://github.com/user-attachments/assets/b1c7ef7b-5f7d-4d35-a908-fd229e04b7ae)
 
