@@ -195,4 +195,123 @@ REFERENCES Genero(id);
 
 Professora sugeriu Midori Toyota para curso de SQL na Udemy
 
+# 🫣 AULA 04 - 17/08/2024
+
+Foi apresentado nessa aula o DBSCHEMA, um programa para criar a modelagem de dados como o da aula passada, mas com integração com SGBDs.
+
+Clica com o botão direito e cria a tabela colocando o nome e nomeando as colunas. Exemplo da tela de criação abaixo:
+
+![image](https://github.com/user-attachments/assets/db275cdd-fac4-4265-b8a9-1684710927fc)
+
+Depois de criar as tabelas seguindo sempre a estrutura de ID (como pk, integer e serial) e as colunas gerais da tabela (como not null), incluindo as que serão FK (como not null) você pode gerar o script sql nesse comando:
+
+![image](https://github.com/user-attachments/assets/c5480514-1ddd-4165-b50f-32c685d483c2)
+
+Para fazer as ligações de FK, é preciso clicar e arrastar da "tabela protagonista" para a "tabela coadjuvante", ou seja, se na Tabela Cliente tem uma FK chamada id_genero, então eu clico em id_genero e arrasto até o ID (PK) da Tabela Genero. Nesse exemplo, a Tabela Cliente é a protagonista e a Tabela Genero é a coadjuvante (se fizer o inverso, não vai dar certo).
+
+Todos os ALTER TABLE (geralmente as FK) eu juntei em um bloco de notas e copiei no final do script segundo orientação da professora (acho que isso é visando um código mais limpo e organizado):
+
+![image](https://github.com/user-attachments/assets/6be7d4ba-f64a-4f11-a1e7-84e69575ed03)
+
+Esse foi o script que eu gerei através do dbschema e rodei no postgreesql
+
+```
+CREATE TABLE public.cliente ( 
+	id                   INTEGER   NOT NULL,
+	nome                 VARCHAR(100)   NOT NULL,
+	cod_cliente          VARCHAR(100)   NOT NULL,
+	cpf                  VARCHAR(100)   NOT NULL,
+	rg                   VARCHAR(100)   NOT NULL,
+	data_cadastro        DATE   NOT NULL,
+	id_genero            INTEGER   NOT NULL,
+	id_endereco          INTEGER   NOT NULL,
+	CONSTRAINT pk_cliente PRIMARY KEY ( id )
+ );
+ 
+ CREATE TABLE public.genero ( 
+	id                   INTEGER   NOT NULL,
+	nome                 VARCHAR(100)   NOT NULL,
+	CONSTRAINT pk_genero PRIMARY KEY ( id )
+ );
+ 
+ CREATE TABLE public.tipo_contato_cliente ( 
+	id                   INTEGER   NOT NULL,
+	descricao            VARCHAR(100)   NOT NULL,
+	id_tipo_contato      INTEGER   NOT NULL,
+	id_cliente           INTEGER   NOT NULL,
+	CONSTRAINT pk_tipo_contato_cliente PRIMARY KEY ( id )
+ );
+
+CREATE TABLE public.loja_cliente ( 
+	id                   INTEGER   NOT NULL,
+	id_cliente           INTEGER   NOT NULL,
+	id_loja              INTEGER   NOT NULL,
+	CONSTRAINT pk_loja_cliente PRIMARY KEY ( id )
+ );
+ 
+ CREATE TABLE public.loja ( 
+	id                   INTEGER   NOT NULL,
+	nome                 VARCHAR(100)   NOT NULL,
+	cod_loja             VARCHAR(100)   NOT NULL,
+	id_endereco          INTEGER   NOT NULL,
+	CONSTRAINT pk_loja PRIMARY KEY ( id )
+ );
+ 
+ CREATE TABLE public.endereco ( 
+	id                   INTEGER   NOT NULL,
+	logradouro           VARCHAR(100)   NOT NULL,
+	cep                  VARCHAR(100)   NOT NULL,
+	numero               VARCHAR(100)   NOT NULL,
+	id_bairro            INTEGER   NOT NULL,
+	CONSTRAINT pk_endereco PRIMARY KEY ( id )
+ );
+ 
+ CREATE TABLE public.tipo_contato ( 
+	id                   INTEGER   NOT NULL,
+	nome                 VARCHAR(100)   NOT NULL,
+	CONSTRAINT pk_tipo_contato PRIMARY KEY ( id )
+ );
+ 
+ CREATE TABLE public.bairro ( 
+	id                   INTEGER   NOT NULL,
+	nome                 VARCHAR(100)   NOT NULL,
+	id_cidade            INTEGER   NOT NULL,
+	CONSTRAINT pk_bairro PRIMARY KEY ( id )
+ );
+ 
+ CREATE TABLE public.cidade ( 
+	id                   INTEGER   NOT NULL,
+	nome                 VARCHAR(100)   NOT NULL,
+	id_estado            INTEGER   NOT NULL,
+	CONSTRAINT pk_cidade PRIMARY KEY ( id )
+ );
+
+CREATE TABLE public.estado ( 
+	id                   INTEGER   NOT NULL,
+	nome                 VARCHAR(100)   NOT NULL,
+	CONSTRAINT pk_estado PRIMARY KEY ( id )
+ );
+
+ALTER TABLE public.cliente ADD CONSTRAINT fk_cliente_genero FOREIGN KEY ( id_genero ) REFERENCES public.genero( id ) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE public.cliente ADD CONSTRAINT fk_cliente_endereco FOREIGN KEY ( id_endereco ) REFERENCES public.endereco( id ) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE public.tipo_contato_cliente ADD CONSTRAINT fk_tipo_contato_cliente_tipo_contato FOREIGN KEY ( id_tipo_contato ) REFERENCES public.tipo_contato( id ) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE public.tipo_contato_cliente ADD CONSTRAINT fk_tipo_contato_cliente_cliente FOREIGN KEY ( id_cliente ) REFERENCES public.cliente( id ) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE public.loja_cliente ADD CONSTRAINT fk_loja_cliente_cliente FOREIGN KEY ( id_cliente ) REFERENCES public.cliente( id ) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE public.loja_cliente ADD CONSTRAINT fk_loja_cliente_loja FOREIGN KEY ( id_loja ) REFERENCES public.loja( id ) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE public.loja ADD CONSTRAINT fk_loja_endereco FOREIGN KEY ( id_endereco ) REFERENCES public.endereco( id ) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE public.endereco ADD CONSTRAINT fk_endereco_bairro FOREIGN KEY ( id_bairro ) REFERENCES public.bairro( id ) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE public.bairro ADD CONSTRAINT fk_bairro_cidade FOREIGN KEY ( id_cidade ) REFERENCES public.cidade( id ) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE public.cidade ADD CONSTRAINT fk_cidade_estado FOREIGN KEY ( id_estado ) REFERENCES public.estado( id ) ON DELETE NO ACTION ON UPDATE NO ACTION;
+```
+Gerando isso aqui:
+![image](https://github.com/user-attachments/assets/b1c7ef7b-5f7d-4d35-a908-fd229e04b7ae)
 
