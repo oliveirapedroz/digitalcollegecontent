@@ -316,3 +316,22 @@ Gerando isso aqui:
 
 ![image](https://github.com/user-attachments/assets/b1c7ef7b-5f7d-4d35-a908-fd229e04b7ae)
 
+# 😅 AULA 05 - 24/08/2024
+
+A professora trouxe o seguinte Minicenário:
+
+Uma empresa é organizada em departamentos, cada um com um nome único, uma sigla e um funcionário responsável por gerenciá-lo.
+
+Uma data determina quando o funcionário iniciou suas atividades de gerência no departamento.
+
+Um departamento da empresa controla vários projetos, cada um com um código único e um nome.
+
+Um funcionário da empresa está vinculado a um departamento, mas pode trabalhar em vários projetos, sendo determinado o número de horas semanais dedicadas a cada um. Além disso, todo funcionário tem um supervisor direto.
+
+Para cada funcionário são armazenadas informações como: nome, CPF, endereço, telefone(s) de contato,salário e dependentes (primeiroNome, idade, parentesco)
+
+## A partir dos meus entendimentos, criei a seguinte modelagem:
+
+![image](https://github.com/user-attachments/assets/48bc0f8e-46e0-4e2b-b4b0-a1da74152426)
+
+
