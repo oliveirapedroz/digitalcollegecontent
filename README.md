@@ -364,3 +364,21 @@ A empresa pretende implementar um sistema de informação que no futuro permita 
 ![image](https://github.com/user-attachments/assets/ce30bf69-a56b-4ca6-9626-b1026a785b8c)
 
 Esperando a correção...
+
+# 😁 AULA 06 - 31/08/2024
+
+Começamos a aula entendendo como faz o backup de uma base de dados bem como se restaura.
+
+Aqui é para entender que o comando * significa "all", como também posso definir o que quero selecionar
+![image](https://github.com/user-attachments/assets/12f7497d-730e-49ed-8787-2ed8b297c785)
+
+Aqui para entender o comando UPDATE. Lembrando que toda string vachar tem de estar entre aspas (uma aspa)
+![image](https://github.com/user-attachments/assets/67fc9a58-3885-4093-a8ff-00d44fc69e81)
+
+Resumo da professora sobre os comandos SQL
+![image](https://github.com/user-attachments/assets/9525554c-bd93-46e1-ba4f-9ac9345f94b5)
+
+Tem o PDF desse resumo da professora aqui:
+https://www.linkedin.com/posts/nayaraba_resumo-sql-inciantes-activity-7206804085562421248-fKL7?utm_source=share&utm_medium=member_android
+
+
