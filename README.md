@@ -392,7 +392,7 @@ No exemplo do INNER JOIN, foram usadas abreviações para as tabelas. Uma práti
 
 Faltei... 
 
-# 🙈 AULA 08 - 21/09/2024
+# 😅 AULA 08 - 21/09/2024
 
 Essa é uma revisão da aula passada, que eu não vim...
 
@@ -420,6 +420,7 @@ salario
 FROM corporativo.cargo --- No entanto, não tem salario na tabela cargo, tem na lotacao, portanto precisa juntar (JOIN)
 INNER JOIN corporativo.lotacao --- Juntando
 ON cargo.id = lotacao.id_cargo --- Atribuindo uma condição que considera que há o id_cargo na tabela da lotação, ou seja, lá tem essa FK
+Estou definindo que o cargo.id seja IGUAL (=) a FK que está na tabela lotacao chamada de lotacao.id_cargo (assim ela vai juntar)
 OU SEJAAAAAAAAAA sempre que for fazer o inner join deve-se referenciar a tabela que contém as FK. A professora chamou de "Tabela Pai", enquanto as outras são "filhas"
 ```
 Pode-se dar apelidos as tabelas abreviando para a primeira letra ou para as 3 primeiras letras caso você queira escrever menos nas querys
@@ -429,6 +430,10 @@ Em vez disso
 SELECT func.nome
 
 Se usar o apelido, tem que usar em todos e para dar esse apelido basta colocar ele do lado do select como acima.
+
+Lógica do SQL:
+![image](https://github.com/user-attachments/assets/ac0d61b5-857f-40ad-b184-33f531a7a73f)
+
 
 
 
