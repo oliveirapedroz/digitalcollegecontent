@@ -388,3 +388,47 @@ Nessa aula aprendemos vários tipos de comandos SQL como: SELECT, DELETE, ALTER,
 No exemplo do INNER JOIN, foram usadas abreviações para as tabelas. Uma prática para simplificar as buscas como no exemplo abaixo
 ![image](https://github.com/user-attachments/assets/a1b07de5-cf88-4a09-949c-6dc199cd0775)
 
+# 🙈 AULA 07 - 14/09/2024
+
+Faltei... 
+
+# 🙈 AULA 08 - 21/09/2024
+
+Essa é uma revisão da aula passada, que eu não vim...
+
+Todo operador (AVG, SUM etc) inicia com ele e a coluna que se quer calcular. 
+
+Exemplo (a mistura de vários comandos, não funcionará necessariamente)
+```
+SELECT pcd,
+FROM corporativo.funcionario
+WHERE is true
+ORDER BY ASC
+AVG(pretensao_salarial) ; numeric (18,2) --- Esse comando (o numeric) é para simplificar a visualização do número em duas casas decimais
+AS media_pretensao --- Só para renomear a nova informação
+AND pcd = true --- Quando se quer gerar duas condições
+OR --- Quando quero "duas verdades"
+NOT pcd --- Isso funciona para tirar os que não são pcd, como o pcd = true traz os que são
+GROUP BY pcd --- É preciso colocar o Group By para identificar no que você quer calcular
+HAVING AVG(pretensao_salarial) >=5000 --- O Having é para estipular uma outra condição dentro da condição que eu já busquei, ou seja, depois de calcular a média, eu quero as médias iguais ou acima de 5000
+SELECT MAX(pretensao_salarial) --- A pretensão maxima como é obvio ser
+FROM corporativo.funcionario
+
+SELECT
+nome as cargo --- Só renomeei para melhor visualização
+salario
+FROM corporativo.cargo --- No entanto, não tem salario na tabela cargo, tem na lotacao, portanto precisa juntar (JOIN)
+INNER JOIN corporativo.lotacao --- Juntando
+ON cargo.id = lotacao.id_cargo --- Atribuindo uma condição que considera que há o id_cargo na tabela da lotação, ou seja, lá tem essa FK
+OU SEJAAAAAAAAAA sempre que for fazer o inner join deve-se referenciar a tabela que contém as FK. A professora chamou de "Tabela Pai", enquanto as outras são "filhas"
+```
+Pode-se dar apelidos as tabelas abreviando para a primeira letra ou para as 3 primeiras letras caso você queira escrever menos nas querys
+Exemplo:
+SELECT funcionario.nome func
+Em vez disso
+SELECT func.nome
+
+Se usar o apelido, tem que usar em todos e para dar esse apelido basta colocar ele do lado do select como acima.
+
+
+
