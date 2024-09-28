@@ -435,5 +435,19 @@ Lógica do SQL:
 ![image](https://github.com/user-attachments/assets/ac0d61b5-857f-40ad-b184-33f531a7a73f)
 
 
+# 😒 AULA 09 - 28/09/2024
+
+Na aula de hoje está sendo apresentado o conceito de DW - DATA WAREHOUSE. Foi explicado que os Banco de Dados Relacionais com todas suas tabelas infinitas de correlações não são usualmente utilizadas no dia-a-dia de um Analista de Dados. Na realidade, usa-se o DW para fazer um recorte de dados e tabelas relevantes para as análises que se quer fazer e é em cima disso que o Analista trabalha.
+
+É comum existirem Analistas que recebem esses dados já em DW em vez de manipular Banco de Dados Relacionais (chamado de banco de produção).
+
+Cria-se, então, um banco de dados novo para utilizar como STAGE - ou seja, o recorte do banco de produção.
+Depois disso é que se faz as modelagens de Data Warehouse, trazendo do STAGE e não do banco de produção.
+
+É possível criar as tabelas pelo DB SCHEMA conectando ele ao Postgres.
+
+Tabela Fato x Tabela Dimensão
+STAR MODEL x SNOWFLAKE MODEL
+
 
 
