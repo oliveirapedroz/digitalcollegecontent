@@ -830,4 +830,308 @@ inner join data_warehouse.dim_tempo dt on dt.data = nf.data_venda
 SELECT * FROM data_warehouse.fato_vendas
 ```
 
+# 😥 AULA 10 - 05/10/2024
+
+
+Recaptulando as informações do DW. O Stage é um recorte do Banco Relacional. Nele, nós faremos uma cópia das informações do Banco, mas temos que criar novamente as tabelas, pois não da pra copiá-las.
+
+Depois de copiá-las, a gente cria o DW. Nele, faremos UMA NOVA MODELAGEM que condensa as informações em TABELA FATO e TABELAS DIMENSÃO. Com as informações condensadas, copiaremos do stage para o DW o que queremos ver para, só depois, fazermos a ANÁLISE DE DADOS.
+
+1. Analisar o Banco Relacional
+2. Verificar onde estão as informações que meu cliente quer usar
+3. Criar o STAGE e fazer o recorte do que queremos
+4. Condensar as tabelas e construir uma nova modelagem para o DW
+
+Tabela Dimensão só vão texto. Tabela Fato que podem ir valores.
+
+```
+--- 1º FAZER A MODELAGEM E CRIAÇÃO DAS TABELAS.
+--- 2º ENTENDER SOBRE AS COLUNAS QUE VAI NAS DIMENSÕES E FATO
+--- 3º CRIAR A MINHA DIM_TEMPO
+--- 4º CRIAR AS DIMENSÕES, SEMPRE ANTES DA FATO.
+
+--- DIM_TEMPO
+--- PODE SER UM SCRIPT PADRÃO
+
+INSERT INTO data_warehouse.dim_tempo(data, ano, mes, dia, dia_da_semana, mes_extenso)
+SELECT 
+	dt as data,
+    EXTRACT(YEAR FROM dt) AS ano,
+    EXTRACT(MONTH FROM dt) AS mes,
+    EXTRACT(DAY FROM dt) AS dia,
+    TO_CHAR(dt, 'Day') AS dia_da_semana,
+    TO_CHAR(dt, 'Month') AS mes_extenso
+FROM
+    generate_series(CURRENT_DATE - INTERVAL '30 years', 
+	CURRENT_DATE + INTERVAL '5 years', INTERVAL '1 day') AS dt;
+
+SELECT * 
+FROM data_warehouse.dim_tempo
+ORDER BY id DESC
+
+
+--- Carregamento da Dimensão de Região
+
+INSERT INTO data_warehouse.dim_regiao (pais, cidade, regiao)
+SELECT DISTINCT 
+pais_navio as pais, 
+cidade_navio as cidade, 
+regiao_navio as regiao
+FROM pedidos 
+
+SELECT * FROM data_warehouse.dim_regiao
+SELECT * FROM pedidos
+
+
+--- Carregamento da Dimensão de Produtos
+
+INSERT INTO data_warehouse.dim_produto (nome, categoria)
+SELECT DISTINCT  
+pr.nome, 
+c.nome as categoria
+FROM produtos pr
+INNER JOIN categorias c on c.id = pr.id_categoria
+
+SELECT * FROM data_warehouse.dim_produto
+SELECT * FROM produtos
+
+
+--- Carregamento da Fato
+
+--- Identificar tabelas
+--- Apontar as colunas que queremos trabalhar
+
+INSERT INTO data_warehouse.fato_vendas(id_tempo,id_produto,id_regiao, quantidade, venda)
+
+--- Selecionar os id das dimensões (tempo, produto e regiao)
+
+SELECT
+dt.id as id_tempo, --- dim_tempo
+dp.id as id_produto, --- dim_produto
+dr.id as id_regiao, --- dim_regiao
+
+pd.quantidade, --- tabela de pedido detalhe
+(pd.quantidade * pd.preco_unitario * (1 - pd.desconto))::numeric(18,2) as venda 
+FROM pedidos p --- tabela de pedidos
+
+INNER JOIN pedido_detalhe pd ON pd.id_pedido = p.id
+INNER JOIN produtos pr ON pr.id = pd.id_produto
+INNER JOIN data_warehouse.dim_tempo dt ON dt.data = p.data_pedido
+INNER JOIN data_warehouse.dim_produto dp ON dp.nome = pr.nome
+INNER JOIN data_warehouse.dim_regiao dr ON dr.cidade = p.cidade_navio and dr.pais = p.pais_navio 
+
+SELECT * FROM data_warehouse.fato_vendas
+SELECT * FROM produtos
+
+SELECT SUM(venda)::numeric(18,2) as total_venda
+FROM data_warehouse.fato_vendas
+```
+
+QUAIS AS VANTAGENS DE TER O DW EM VEZ DE FAZER CONSULTAS NO RELACIONAL? A PROF MOSTROU NA PRÁTICA ABAIXO
+
+```
+--1. Total de venda
+
+---Relacional
+
+--- Analisar a lógica de como calcular o total de vendas.
+
+SELECT 
+	SUM((pd.preco_unitario * pd.quantidade) * (1 - pd.desconto))::numeric(18,2) as total_venda
+FROM pedidos p
+INNER JOIN pedido_detalhe pd ON pd.id_pedido = p.id
+
+SELECT * FROM pedidos
+SELECT * FROM pedido_detalhe
+
+---Data Warehouse
+
+SELECT SUM(venda)::numeric(18,2) as total_venda
+FROM data_warehouse.fato_vendas 
+
+SELECT * FROM data_warehouse.fato_vendas 
+
+--2. Média de venda
+
+---Relacional
+
+SELECT AVG((pd.preco_unitario * pd.quantidade) * (1 - pd.desconto))::numeric(18,2) as media_venda
+FROM pedidos p
+INNER JOIN pedido_detalhe pd ON pd.id_pedido = p.id
+
+SELECT * FROM pedidos
+
+
+---Data Warehouse
+
+SELECT AVG(venda)::numeric(18,2) as media_venda
+FROM data_warehouse.fato_vendas 
+
+SELECT * FROM data_warehouse.fato_vendas 
+
+--3. Maior venda
+
+--- Relacional
+--- o calculo se refere ao total da venda.
+
+SELECT MAX((pd.preco_unitario * pd.quantidade) * (1 - pd.desconto))::numeric(18,2) as maior_venda
+FROM pedidos p
+INNER JOIN pedido_detalhe pd ON pd.id_pedido = p.id
+
+
+--- Data Warehouse
+
+SELECT MAX(venda)::numeric(18,2) as maior_venda
+FROM data_warehouse.fato_vendas 
+
+--4. Menor venda
+
+--- Relacional
+
+SELECT MIN((pd.preco_unitario * pd.quantidade) * (1 - pd.desconto))::numeric(18,2) as menor_venda
+FROM pedidos p
+INNER JOIN pedido_detalhe pd ON pd.id_pedido = p.id
+
+--- Data Warehouse
+
+SELECT MIN(venda)::numeric(18,2) as menor_venda
+FROM data_warehouse.fato_vendas 
+
+
+--5. Listar venda por ano
+--- Vou particionar a minha data, utilizando o comando date_part
+--- Uma operação para calcular o total das vendas (SUM).
+
+--- Relacional
+
+SELECT 
+	date_part('Year', data_pedido) as ano, 
+SUM((pd.quantidade * pd.preco_unitario * (1 - pd.desconto)))::numeric(18,2)  as total_venda
+FROM pedidos p
+INNER JOIN pedido_detalhe pd ON pd.id_pedido = p.id
+GROUP BY ano
+
+SELECT * FROM pedidos
+
+--- Data Warehouse
+
+SELECT 
+	ano, 
+	SUM(venda) as total_venda
+FROM data_warehouse.fato_vendas fv
+INNER JOIN data_warehouse.dim_tempo dt ON dt.id = fv.id_tempo
+GROUP BY ano
+
+SELECT * FROM data_warehouse.dim_tempo
+SELECT * FROM data_warehouse.fato_vendas
+
+--6. Listar venda por categoria
+--- Verificar onde tem a informação de categoria.
+--- Calcular o meu total de venda.
+
+--- Relacional
+
+SELECT 
+	c.nome as categoria,
+	SUM((pd.preco_unitario * pd.quantidade)*(1 - pd.desconto))::numeric(18,2) as total_venda
+FROM pedidos p
+INNER JOIN pedido_detalhe pd ON pd.id_pedido = p.id
+INNER JOIN produtos pr ON pr.id  = pd.id_produto
+INNER JOIN categorias c ON c.id = pr.id_categoria
+GROUP BY c.nome
+ORDER BY total_venda DESC
+
+
+--- Data Warehouse
+
+SELECT 
+	dp.categoria, 
+	SUM(venda) as total_venda
+FROM data_warehouse.fato_vendas fv
+INNER JOIN data_warehouse.dim_produto dp ON dp.id = fv.id_produto
+GROUP BY dp.categoria
+ORDER BY total_venda DESC
+
+SELECT * FROM data_warehouse.dim_produto
+SELECT * FROM data_warehouse.fato_vendas
+
+--7. Listar venda por produto
+
+--- Relacional
+
+SELECT 
+	pr.nome as produto,
+	SUM((pd.preco_unitario * pd.quantidade)*(1 - pd.desconto))::numeric(18,2) as total_venda
+FROM pedidos p
+INNER JOIN pedido_detalhe pd ON pd.id_pedido = p.id
+INNER JOIN produtos pr ON pr.id  = pd.id_produto
+GROUP BY pr.nome
+ORDER BY total_venda DESC
+
+SELECT * FROM produtos
+
+--- Data Warehouse
+
+SELECT 
+	dp.nome, 
+	SUM(venda) as total_venda
+FROM data_warehouse.fato_vendas fv
+INNER JOIN data_warehouse.dim_produto dp ON dp.id = fv.id_produto
+GROUP BY dp.nome
+ORDER BY total_venda DESC
+
+SELECT * FROM data_warehouse.dim_produto
+SELECT * FROM data_warehouse.fato_vendas
+
+
+--8.Listar venda por país
+
+--Relacional
+
+SELECT 
+	p.pais_navio as pais,
+	SUM((pd.preco_unitario * pd.quantidade)*(1 - pd.desconto))::numeric(18,2) as total_venda
+FROM pedidos p
+INNER JOIN pedido_detalhe pd ON pd.id_pedido = p.id
+GROUP BY p.pais_navio
+ORDER BY total_venda DESC
+
+SELECT * FROM pedidos
+
+
+--Data Warehouse
+
+SELECT 
+	pais, 
+	SUM(venda) as total_venda
+FROM data_warehouse.fato_vendas fv
+INNER JOIN data_warehouse.dim_regiao dr ON dr.id = fv.id_regiao
+GROUP BY pais
+ORDER BY total_venda DESC
+
+
+SELECT * FROM data_warehouse.dim_regiao
+SELECT * FROM data_warehouse.fato_vendas
+
+SELECT COUNT(venda)::numeric(18,2) as menor_venda
+FROM data_warehouse.fato_vendas
+```
+
+RELEMBRANDO O JOIN
+
+É a junção de duas informações que estão em tabelas diferentes. Por exemplo, na Tabela Fato de Venda eu tenho a quantidade e a venda, na de Dim_Regiao eu tenho País. Se eu quiser as vendas por País, eu precisaria fazer o Join.
+
+```
+SELECT 
+	pais, 
+	SUM(venda) as total_venda
+FROM data_warehouse.fato_vendas fv
+INNER JOIN data_warehouse.dim_regiao dr --- Trago o schema e a tabela
+ON --- Comando para juntar
+dr.id --- A dimensao_tempo (o id)
+= --- Outro comando 
+fv.id_regiao --- A fato_venda (o id)
+GROUP BY pais
+ORDER BY total_venda DESC
+```
 
