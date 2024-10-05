@@ -485,21 +485,6 @@ Se usar o apelido, tem que usar em todos e para dar esse apelido basta colocar e
 Lógica do SQL:
 ![image](https://github.com/user-attachments/assets/ac0d61b5-857f-40ad-b184-33f531a7a73f)
 
-
-# 😒 AULA 09 - 28/09/2024
-
-Na aula de hoje está sendo apresentado o conceito de DW - DATA WAREHOUSE. Foi explicado que os Banco de Dados Relacionais com todas suas tabelas infinitas de correlações não são usualmente utilizadas no dia-a-dia de um Analista de Dados. Na realidade, usa-se o DW para fazer um recorte de dados e tabelas relevantes para as análises que se quer fazer e é em cima disso que o Analista trabalha.
-
-É comum existirem Analistas que recebem esses dados já em DW em vez de manipular Banco de Dados Relacionais (chamado de banco de produção).
-
-Cria-se, então, um banco de dados novo para utilizar como STAGE - ou seja, o recorte do banco de produção.
-Depois disso é que se faz as modelagens de Data Warehouse, trazendo do STAGE e não do banco de produção.
-
-É possível criar as tabelas pelo DB SCHEMA conectando ele ao Postgres.
-
-Tabela Fato x Tabela Dimensão
-STAR MODEL x SNOWFLAKE MODEL
-
 SCRIPT DA ATIVIDADE FEITA EM SALA DE AULA
 
 ```
@@ -697,5 +682,152 @@ limit 5;
 --- enquanto o objetivo é somar o total de vendas, sem se preocupar com a data específica.
 ```
 
+
+# 😒 AULA 09 - 28/09/2024
+
+Na aula de hoje está sendo apresentado o conceito de DW - DATA WAREHOUSE. Foi explicado que os Banco de Dados Relacionais com todas suas tabelas infinitas de correlações não são usualmente utilizadas no dia-a-dia de um Analista de Dados. Na realidade, usa-se o DW para fazer um recorte de dados e tabelas relevantes para as análises que se quer fazer e é em cima disso que o Analista trabalha.
+
+É comum existirem Analistas que recebem esses dados já em DW em vez de manipular Banco de Dados Relacionais (chamado de banco de produção).
+
+Cria-se, então, um banco de dados novo para utilizar como STAGE - ou seja, o recorte do banco de produção.
+Depois disso é que se faz as modelagens de Data Warehouse, trazendo do STAGE e não do banco de produção.
+
+É possível criar as tabelas pelo DB SCHEMA conectando ele ao Postgres.
+
+Tabela Fato x Tabela Dimensão
+STAR MODEL x SNOWFLAKE MODEL
+
+SCRIPT FEITO NA AULA
+
+```
+---> BANCO RELACIONAL (BANCO DE PRODUÇÃO) ---> BANCO DE STAGE (CÓPIA DE ALGUMAS INFORMAÇÕES DO
+--- DO MEU BANCO RELACIONAL, GERALMENTE JÁ É UMA ESTRUTURA PARA CRIAR O MEU BANCO DATA WAREHOUSE) --->
+--- BANCO DATA WAREHOUSE(BANCO DE DADOS DIMENSIONAL (TABELAS FATO E DIMENSÃO), NESSE BANCO, GERALMENTE
+--- ELE TRÁS INFORMAÇÕES ESPECIFICAS DE UMA ÁREA, SETOR, FILIAL (NÃO TRÁS TUDO QUE TEM NO RELACIONAL))
+--- NO BANCO DE STAGE EU COPIO TABELAS (PODE SELECIONAR COLUNAS)
+
+--- CRIANDO UM BANCO DE STAGE
+
+--- VOU FAZER UM RECORTE DE UM BANCO ESPECIFICO E LEVAR AS TABELAS QUE EU QUERO TRABALHAR.
+
+--- PRIMEIRO PASSO CRIAR TABELAS.
+
+--- COMO INSERIR OS DADOS SEM USAR A FORMA TRADICIONAL DO INSERT
+
+---- Carregamento da stage forma de pagamento
+
+insert into stage.forma_pagamento (id, descricao) -- TODAS AS COLUNAS DA MINHA MODELAGEM
+select id, descricao from vendas.forma_pagamento
+
+SELECT * FROM stage.forma_pagamento --- STAGE
+SELECT * FROM vendas.forma_pagamento --- RELACIONAL (PRODUÇÃO))
+
+ ---- Carregamento da stage pessoa física
+ 
+insert into stage.pessoa_fisica (id, nome)
+select id, nome from geral.pessoa_fisica
+
+SELECT * FROM stage.pessoa_fisica
+SELECT * FROM geral.pessoa_fisica
+
+--- Carregamento da stage pessoa jurídica
+
+insert into stage.pessoa_juridica (id, razao_social)
+select id, razao_social from geral.pessoa_juridica
+
+SELECT * FROM stage.pessoa_juridica
+SELECT * FROM geral.pessoa_juridica
+
+ --- Carregamento da stage nota fiscal
+ 
+insert into stage.nota_fiscal
+(id, id_vendedor, id_cliente, id_forma_pagto, data_venda, 
+numero_nf, valor)
+SELECT id, id_vendedor, id_cliente, id_forma_pagto, data_venda, 
+numero_nf, valor
+FROM vendas.nota_fiscal
+
+--- COM * --- DEU CERTO -- A ORDEM TEM QUE ESTÁ IGUAL DA TABELA.
+insert into stage.nota_fiscal
+(id, id_vendedor, id_cliente, id_forma_pagto, data_venda, 
+numero_nf, valor)
+SELECT *
+FROM vendas.nota_fiscal
+
+SELECT * FROM stage.nota_fiscal
+SELECT * FROM vendas.nota_fiscal
+
+--- DEPOIS DO STAGE - EU CRIO E MODELO O MEU DATA WAREHOUSE (DW)
+
+--- TABELAS DIMENSOES - ELAS SÃO TABELAS (TEXTO, CARACTERISTICA, DESCRIÇÕES)
+--- TABELA FATO - ELAS SÃO TABELAS (NUMEROS, REGISTROS HISTORICOS, MOVIMENTAÇÕES, VALORES, DATA)
+
+--- DIMENSÃO TEMPO
+
+
+INSERT INTO data_warehouse.dim_tempo(data, ano, mes, dia, dia_da_semana, mes_extenso)
+SELECT 
+dt as data,
+ EXTRACT(YEAR FROM dt) AS ano,
+ EXTRACT(MONTH FROM dt) AS mes,
+ EXTRACT(DAY FROM dt) AS dia,
+ TO_CHAR(dt, 'Day') AS dia_da_semana,
+ TO_CHAR(dt, 'Month') AS mes_extenso
+ FROM
+ generate_series(CURRENT_DATE - INTERVAL '30 years', 
+CURRENT_DATE + INTERVAL '5 years', INTERVAL '1 day') AS dt;
+
+SELECT * 
+FROM data_warehouse.dim_tempo
+ORDER BY data DESC
+
+---- CARREGANDO OS DADOS
+
+
+--- Carregamento Data Warehouse da dimensão forma de pagamento
+
+ insert into data_warehouse.dim_forma_pagamento (id, descricao)
+ select id, descricao from stage.forma_pagamento
+
+ SELECT * FROM data_warehouse.dim_forma_pagamento
+ SELECT * FROM stage.forma_pagamento
+
+
+ ---- Carregamento Data Warehouse da dimensão cliente
+ 
+ insert into data_warehouse.dim_cliente (id, nome)
+ select distinct id_cliente, nome
+ from stage.nota_fiscal nf
+ inner join stage.pessoa_fisica pf on pf.id = nf.id_cliente ---- PESSOA FISICA
+ union
+ select distinct id_cliente, razao_social
+ from stage.nota_fiscal nf
+ inner join stage.pessoa_juridica pj on pj.id = nf.id_cliente --- PESSOA JURIDICA
+
+
+ SELECT * FROM data_warehouse.dim_cliente
+
+--- Carregamento Data Warehouse da dimensão vendedor
+
+ insert into data_warehouse.dim_vendedor (id, nome)
+ select distinct id_vendedor, nome
+ from stage.nota_fiscal nf
+ inner join stage.pessoa_fisica pf on pf.id = nf.id_vendedor
+
+ SELECT * FROM data_warehouse.dim_vendedor
+
+
+ ---Carregamento Data Warehouse da fato vendas
+ 
+INSERT INTO data_warehouse.fato_vendas(
+id, id_cliente, id_vendedor, id_forma_pagamento,  
+id_data_venda, numero_nf, valor)
+select nf.id, id_cliente, id_vendedor, id_forma_pagto, 
+dt.id as id_data_venda, numero_nf, valor
+from stage.nota_fiscal nf
+inner join data_warehouse.dim_tempo dt on dt.data = nf.data_venda
+
+SELECT * FROM data_warehouse.fato_vendas
+```
 
 
