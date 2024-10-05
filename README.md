@@ -392,6 +392,57 @@ No exemplo do INNER JOIN, foram usadas abreviações para as tabelas. Uma práti
 
 Faltei... 
 
+SCRIPT QUE A PROF DISPONIBILIZOU SOBRE JOINS
+
+```
+--- INNER JOIN (JUNÇÃO SIMPLES)
+-- EX. CARGO + SALARIO
+
+SELECT 
+	c.nome as cargo, 
+	salario
+FROM corporativo.cargo c
+INNER JOIN corporativo.lotacao l on  c.id = l.id_cargo 
+
+--- EX. ESSE COMANDO TRÁS O NOME DO CARGO E O SALÁRIO DA LOTAÇÃO,
+--- MAS APENAS OS REGISTROS QUE ESTÃO PRESENTES EM AMBAS AS TABELAS.
+
+
+--- LEFT JOIN (JUNÇÃO A ESQUERDA)
+
+SELECT 
+	c.nome as cargo, 
+	salario
+FROM corporativo.cargo c
+LEFT JOIN corporativo.lotacao l on  c.id = l.id_cargo 
+
+--- EX. ESSE COMANDO RETORNA TODOS OS CARGOS, MESMO QUE NÃO TENHAM CORRESPONDENCIA
+--- NA TABELA LOTAÇÃO. QUANDO NÃO HOUVER CORRESPONDENCIA, O VALOR DE SALARIO SERÁ NULL.
+
+
+--- RIGHT JOIN (JUNÇÃO A DIREITA)
+
+SELECT 
+	c.nome as cargo, 
+	salario
+FROM corporativo.cargo c
+RIGHT JOIN corporativo.lotacao l on  c.id = l.id_cargo 
+
+--- EX. ESSE COMANDO RETORNA TODAS AS LINHAS DA TABELA LOTACAO, MESMO QUE NÃO TENHAM
+--- CORRESPONDENCIA NA TABELA CARGO.
+--- QUANDO NÃO HOUVER CORRESPONDENCIA, O VALOR DO NOME DO CARGO SERÁ NULL.
+
+--- FULL OUTER JOIN (JUNÇÃO COMPLETA)
+
+SELECT c.nome, salario
+FROM corporativo.cargo c
+FULL JOIN corporativo.lotacao l on c.id = l.id_cargo 
+
+--- EX. ESSE COMANDO RETORNA TODAS AS LINHAS DE AMBAS AS TABELAS.
+--- SE HOUVER REGISTROS SEM CORRESPONDENCIA EM UMA DAS TABELAS, AS COLUNAS
+--- DA OUTRA TABELA SERÃO PREENCHIDAS COM NULL.
+```
+
 # 😅 AULA 08 - 21/09/2024
 
 Essa é uma revisão da aula passada, que eu não vim...
@@ -448,6 +499,203 @@ Depois disso é que se faz as modelagens de Data Warehouse, trazendo do STAGE e 
 
 Tabela Fato x Tabela Dimensão
 STAR MODEL x SNOWFLAKE MODEL
+
+SCRIPT DA ATIVIDADE FEITA EM SALA DE AULA
+
+```
+--- QUESTÃO 1: 
+---Selecione todos os registros da tabela sales.funnel, exibindo as colunas: visit_id, 
+---customer_id, product_id, e store_id.
+
+SELECT * FROM sales.funnel
+
+SELECT 
+	 visit_id,
+	 customer_id, 
+	 product_id,
+	 store_id
+FROM sales.funnel;
+
+
+SELECT 
+	 visit_id 
+	,customer_id 
+	,product_id
+FROM sales.funnel;	
+
+
+--- QUESTÃO 2: 
+--- Liste todos os produtos (product_id) que foram adicionados ao carrinho, exibindo 
+--- também as datas em que isso ocorreu (add_to_cart_date).
+
+SELECT * FROM sales.customers --- CLIENTE PF
+SELECT * FROM sales.products --- PRODUTOS
+SELECT * FROM sales.stores --- CLIENTE PJ
+SELECT * FROM sales.funnel --- VENDAS -- OBS TEM VÁRIAS CHAVES ESTRANGEIRAS.
+
+--- OPÇÃO COM JOIN
+SELECT 
+	products.product_id as produto,
+	funnel.add_to_cart_date as data_carrinho	
+FROM sales.funnel 
+INNER JOIN sales.products ON products.product_id = funnel.product_id
+
+--- OPÇÃO SEM O JOIN
+SELECT 
+	product_id as produto,
+	add_to_cart_date as data_carrinho
+FROM sales.funnel 
+
+--- QUESTÃO 3: 
+--- Recupere todos os registros onde a data de pagamento (paid_date) não é nula. 
+--- Exiba os campos visit_id, customer_id, e paid_date. 
+
+SELECT 
+	visit_id as visita,
+	customer_id as cliente,
+	paid_date as data_pagamento
+FROM sales.funnel 
+WHERE paid_date IS NOT NULL;
+
+--- QUESTÃO 4: 
+--- Liste as visitas onde o cliente iniciou o processo de checkout 
+--- (start_checkout_date), exibindo as colunas visit_id, customer_id, product_id e 
+--- start_checkout_date. 
+
+SELECT 
+	visit_id as visita,
+	customer_id as cliente,
+	product_id as produto,
+	start_checkout_date as data_checkout
+FROM sales.funnel 
+WHERE start_checkout_date IS NOT NULL;
+
+--- QUESTÃO 5: 
+--- Encontre as visitas onde o desconto aplicado foi maior do que 20% (discount < 
+--- (-0.20). Exiba as colunas visit_id, product_id, e discount.
+
+SELECT 
+	visit_id,
+	product_id,
+	discount
+FROM sales.funnel
+WHERE discount > -0.20
+
+--- QUESTÃO 6: 
+--- Selecione as visitas feitas por clientes em lojas específicas. Liste todos os 
+--- registros onde o store_id é 'BF580E604866'. Exiba as colunas visit_id, customer_id, 
+--- product_id, e store_id.
+
+SELECT 
+	visit_id,
+	customer_id,
+	product_id,
+	store_id
+FROM sales.funnel
+WHERE store_id = 'BF580E604866'
+
+--- QUESTÃO 7: 
+--- Calcule a média do desconto aplicado em todas as transações. Exiba a média do 
+--- campo discount. 
+--- :: type_cast é o nome do conversor.
+
+SELECT 
+	AVG(discount)::numeric(18,2) as media_desconto
+FROM sales.funnel	
+
+
+--- QUESTÃO 8: 
+--- Conte quantas transações foram iniciadas com um processo de checkout 
+--- (start_checkout_date). Nomeie a contagem como checkout_count.
+
+SELECT
+	count(start_checkout_date) as checkout_count
+FROM sales.funnel
+WHERE start_checkout_date IS NOT NULL;
+
+--- QUESTÃO 9: 
+--- Calcule a taxa de conversão para cada loja. Para isso, obtenha o número total de 
+--- visitas (COUNT(*)) e o número de transações finalizadas (onde paid_date não é 
+--- nulo), depois calcule a taxa de conversão (transações finalizadas / total de visitas 
+--- * 100). Exiba store_id, o total de visitas, transações finalizadas e a taxa de 
+--- conversão, nomeando a coluna como conversion_rate.
+
+--- calculo - (vendas/visitas)*100 (100 transformar em percentual)
+
+SELECT * FROM sales.customers --- CLIENTE PF
+SELECT * FROM sales.products --- PRODUTOS
+SELECT * FROM sales.stores --- CLIENTE PJ
+SELECT * FROM sales.funnel --- VENDAS -- OBS TEM VÁRIAS CHAVES ESTRANGEIRAS.
+
+--- visit_id = total de visitas
+--- paid_date (data de pagamento) = vendas
+
+---- Calcula a taxa de conversão como uma porcentagem de transações finalizadas em relação ao 
+---número de visitas. Se não houver visitas, 
+--- a taxa de conversão é definida como 0 usando a função COALESCE para evitar divisão por zero.
+
+--- O CASE WHEN é uma condição que verifica se o campo paid_date contém um valor 
+--- (significando que houve pagamento e, portanto, a transação foi finalizada). Se a condição for 
+--- verdadeira, a consulta conta essa linha.
+
+--- Exemplo: Se em 200 visitas, 50 delas resultaram em transações pagas, o valor de transacao_finalizada 
+--- será 50 para essa loja.
+
+
+--- COM O COLASCE
+SELECT 
+    store_id,
+    count(visit_id) AS total_visita,
+    count(case when paid_date is not null then 1 end) as transacao_finalizada,
+    coalesce(
+        (count(case when paid_date is not null then 1 end) * 100.0 / count(visit_id)),
+		0
+    ) as taxa_conversao
+from sales.funnel
+group by store_id;
+	
+	
+--- QUESTÃO 10: 
+--- Liste os 5 produtos mais vendidos (com transações pagas), exibindo as colunas 
+--- product_id, paid_date e store_id. Ordene os resultados pela data de pagamento 
+--- mais recente.
+
+select
+	product_id as produto, 
+	MAX(paid_date) as data_pagamento, -- data mais recente
+	store_id,
+	count(*) as total_vendido
+from sales.funnel
+where paid_date is not null
+group by product_id, store_id
+order by total_vendido desc
+limit 5;
+
+----Por que usar MAX em vez de incluir paid_date no GROUP BY?
+--- Agrupamento por product_id e store_id:
+
+---A consulta está agrupando os dados por product_id (identificador do produto) e 
+---store_id (identificador da loja). 
+---Isso significa que, para cada combinação de produto e loja, você quer obter 
+---a contagem total de vendas, sem dividir por data.
+---Se incluirmos paid_date no GROUP BY, o resultado seria dividido por cada data 
+---de pagamento, o que não faz sentido aqui, pois estamos interessados no total vendido por produto, 
+---independentemente da data.
+
+--- Selecionando a data mais recente:
+
+--- Como estamos agrupando por produto e loja, mas ainda queremos saber a data mais recente 
+---em que o produto foi vendido (ou seja, a última vez que houve uma transação), usamos a 
+---função de agregação MAX(paid_date).
+---MAX(paid_date) retorna a data mais recente da transação (o maior valor de paid_date) 
+---dentro de cada grupo (neste caso, para cada combinação de product_id e store_id).
+
+--- Resumo:
+--- Usar MAX(paid_date) permite que você obtenha a data mais recente de venda para cada produto/loja, 
+--- enquanto ainda agrupa os resultados para contar o total de vendas por produto.
+--- Incluir paid_date no GROUP BY seria problemático, pois dividiria os resultados por data, 
+--- enquanto o objetivo é somar o total de vendas, sem se preocupar com a data específica.
+```
 
 
 
