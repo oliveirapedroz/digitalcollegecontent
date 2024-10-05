@@ -1135,3 +1135,7 @@ GROUP BY pais
 ORDER BY total_venda DESC
 ```
 
+FIZ MEU PRIMEIRO DASH NO POWERBI
+
+![image](https://github.com/user-attachments/assets/6be9cd8a-dd1d-42e1-b61e-f8ed954f19ab)
+
