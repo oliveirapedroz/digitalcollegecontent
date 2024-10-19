@@ -1139,3 +1139,183 @@ FIZ MEU PRIMEIRO DASH NO POWERBI
 
 ![image](https://github.com/user-attachments/assets/6be9cd8a-dd1d-42e1-b61e-f8ed954f19ab)
 
+# 🤓 AULA 11 - 19/10/2024
+
+````
+--- LISTE OS CLIENTES QUE REALIZARAM MAIS DE 3 COMPRAS
+
+--- Com subquuery
+SELECT id_cliente, nome, sobrenome
+FROM clientes
+WHERE id_cliente IN (
+	SELECT id_cliente
+	FROM vendas
+	GROUP BY id_cliente
+	HAVING COUNT(id_venda) > 3
+);
+
+--- É preciso entender que sempre a consulta vai trazer visualmente as informações da primeira tabela inserida
+--- nesse caso, a tabela de clientes, por isso trouxe idcliente, nome e sobrenome.
+--- Ele não consegue trazer o número de vendas porque essa informação está na tabela vendas e não cliente.
+
+--- Para isso, então, temos de fazer um JOIN
+
+SELECT c.nome, c.sobrenome,
+COUNT (vnd.id_venda) as quantidade_vendas
+FROM clientes c
+JOIN vendas vnd ON c.id_cliente = vnd.id_cliente
+GROUP BY c.nome, c.sobrenome
+HAVING COUNT(vnd.id_venda) > 3
+ORDER BY quantidade_vendas DESC
+
+--- Lembrando que esse c é de cliente e vnd é de vendas, referenciando as tabelas. Essa invenção existe para
+--- supostamente simplificar as consultas, ou digitar menos.
+
+CREATE TABLE dw.dim_cliente (
+    id_cliente SERIAL PRIMARY KEY,
+    nome VARCHAR(50),
+    sobrenome VARCHAR(50),
+    email VARCHAR(100),
+    sexo CHAR(1),
+    data_nascimento DATE
+);
+
+CREATE TABLE dw.dim_regiao (
+    id_regiao SERIAL PRIMARY KEY,
+    nome_cidade VARCHAR(50),
+	nome_estado VARCHAR(50),
+	nome_pais VARCHAR(50)
+);
+
+
+CREATE TABLE dw.dim_produto (
+    id_produto SERIAL PRIMARY KEY,
+    nome_produto VARCHAR(100),
+    categoria VARCHAR(50)
+);
+
+
+CREATE TABLE dw.dim_vendedor (
+    id_vendedor SERIAL PRIMARY KEY,
+    nome_vendedor VARCHAR(50),
+    sobrenome_vendedor VARCHAR(50),
+    data_contratacao DATE
+);
+
+--- DIM TEMPO
+
+CREATE TABLE dw.dim_tempo (
+    id_tempo SERIAL PRIMARY KEY,
+    data DATE,
+    ano INT,
+    mes INT,
+    dia INT,
+    nome_dia_semana VARCHAR(20),
+    nome_mes VARCHAR(20),
+    trimestre INT,
+    bimestre INT,
+    semestre INT
+);
+
+INSERT INTO dw.dim_tempo (data, ano, mes, dia, nome_dia_semana, nome_mes, trimestre, bimestre, semestre)
+SELECT 
+    dt AS data,
+    EXTRACT(YEAR FROM dt) AS ano,
+    EXTRACT(MONTH FROM dt) AS mes,
+    EXTRACT(DAY FROM dt) AS dia,
+    TO_CHAR(dt, 'Day') AS nome_dia_semana,  -- Nome do dia da semana (Ex: Segunda, Terça)
+    TO_CHAR(dt, 'Month') AS nome_mes,        -- Nome do mês (Ex: Janeiro, Fevereiro)
+    EXTRACT(QUARTER FROM dt) AS trimestre,   -- Trimestre (1, 2, 3, 4)
+    (EXTRACT(MONTH FROM dt) + 1) / 2 AS bimestre, -- Bimestre (1, 2, 3, 4, 5, 6)
+    CASE 
+        WHEN EXTRACT(MONTH FROM dt) <= 6 THEN 1
+        ELSE 2
+    END AS semestre                          -- Semestre (1 ou 2)
+FROM
+    generate_series('2015-01-01'::DATE, '2024-12-31'::DATE, '1 day'::INTERVAL) AS dt;
+
+-- FATO VENDAS
+
+CREATE TABLE dw.fato_vendas (
+    id_venda SERIAL PRIMARY KEY,
+    id_cliente INT REFERENCES dw.dim_cliente(id_cliente),
+    id_produto INT REFERENCES dw.dim_produto(id_produto),
+    id_vendedor INT REFERENCES dw.dim_vendedor(id_vendedor),
+    id_tempo INT REFERENCES dw.dim_tempo(id_tempo),
+    id_regiao INT REFERENCES dw.dim_regiao(id_regiao),  
+    quantidade INT,
+    valor_venda NUMERIC(10,2)
+);
+
+--- CARGA DE DADOS NO NOSSO DATAWAREHOUSE
+
+
+--- dim_cliente
+
+INSERT INTO dw.dim_cliente (nome, sobrenome, email, sexo, data_nascimento)
+SELECT 
+    nome, 
+    sobrenome, 
+    email, 
+    sexo, 
+    data_nascimento
+FROM stage.clientes;
+
+SELECT * FROM dw.dim_cliente
+
+
+--- dim_produto
+INSERT INTO dw.dim_produto (nome_produto, categoria)
+SELECT 
+    nome_produto, 
+    categoria
+FROM stage.produtos;
+
+SELECT * FROM dw.dim_produto
+
+--dim_vendedor
+INSERT INTO dw.dim_vendedor (nome_vendedor, sobrenome_vendedor, data_contratacao)
+SELECT 
+    nome_vendedor, 
+    sobrenome_vendedor, 
+    data_contratacao
+FROM stage.vendedores;
+
+SELECT * FROM dw.dim_vendedor
+
+---dim_regiao
+
+INSERT INTO dw.dim_regiao (nome_pais, nome_estado, nome_cidade)
+SELECT 
+    p.nome_pais,
+    e.nome_estado,
+    c.nome_cidade
+FROM stage.estados e
+JOIN stage.paises p ON e.id_pais = p.id_pais
+JOIN stage.cidades c ON e.id_estado = c.id_estado;
+
+SELECT * FROM dw.dim_regiao
+
+
+INSERT INTO dw.fato_vendas (id_cliente, id_produto, id_vendedor, id_tempo, id_regiao, quantidade, valor_venda)
+SELECT
+    c.id_cliente,                     -- Relacionando cliente (dim_cliente)
+    p.id_produto,                     -- Relacionando produto (dim_produto)
+    v.id_vendedor,                    -- Relacionando vendedor (dim_vendedor)
+    t.id_tempo,                       -- Relacionando tempo (dim_tempo)
+    r.id_regiao,                      -- Relacionando região (dim_regiao)
+    s_vendas.quantidade,              -- Quantidade de produtos vendidos
+    (s_vendas.quantidade * s_vendas.preco_unitario) AS valor_venda  -- Calculando o valor total da venda
+FROM stage.vendas s_vendas
+JOIN dw.dim_cliente c ON c.id_cliente = s_vendas.id_cliente         -- Relacionando cliente
+JOIN dw.dim_produto p ON p.id_produto = s_vendas.id_produto         -- Relacionando produto
+JOIN dw.dim_vendedor v ON v.id_vendedor = s_vendas.id_vendedor      -- Relacionando vendedor
+JOIN dw.dim_tempo t ON t.data = s_vendas.data_venda                 -- Relacionando data
+JOIN dw.dim_regiao r ON r.nome_cidade = (
+    SELECT ci.nome_cidade 
+    FROM stage.cidades ci
+    WHERE ci.id_cidade = (SELECT v.id_cidade FROM stage.vendedores v WHERE v.id_vendedor = s_vendas.id_vendedor)  -- Relacionando cidade do vendedor
+);
+
+SELECT * FROM dw.fato_vendas LIMIT 10;
+````
